@@ -5,9 +5,44 @@
 #include <ctype.h>
 #include <errno.h>
 
+#define CTRL_Q 17
+
 struct termios original;
 
+char return_keypress()
+//wait for character input
+{
+	int err=0;
+	char inp;
+	while((err=read(0, &inp, 1))!=1)
+	{
+		if(err==-1)
+			kill_process("read");
+	}
+
+	return inp;
+}
+
+void clear_screen()
+//clear the screen by using escape sequence
+{
+	if(write(1, "\x1b[2J", 4)==-1)
+		kill_process("write");
+}
+
+void handle_keypress()
+//handle the character entered
+{
+	char inp=return_keypress();
+
+	switch(inp)
+	{
+		case CTRL_Q:	exit(0);
+	}
+}
+
 void kill_process(char* msg)
+//for debugging
 {
 	char buffer[100];
 	sprintf(buffer, "vkte: %s", msg);
@@ -49,6 +84,7 @@ void switch_to_canonical_mode_atexit()
 }
 
 int main(int argc, char const *argv[])
+//main
 {
 	struct termios original_mode;
 	if(tcgetattr(0, &original_mode)==-1)
@@ -61,16 +97,8 @@ int main(int argc, char const *argv[])
 	char inp;
 	while(1)
 	{
-		inp=0;
-		if(read(0, &inp, 1)==-1)
-			kill_process("read");
-		if(iscntrl(inp))
-			printf("%d\r\n", inp);
-		else
-			printf("%c\r\n", inp);
-		
-		if(inp=='q')
-			break;
+		clear_screen();
+		handle_keypress();
 	}
 
 	switch_to_canonical_mode(original_mode);
