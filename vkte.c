@@ -9,6 +9,8 @@
 
 struct termios original;
 
+void kill_process(char*);
+
 char return_keypress()
 //wait for character input
 {
@@ -28,6 +30,8 @@ void clear_screen()
 {
 	if(write(1, "\x1b[2J", 4)==-1)
 		kill_process("write");
+	if(write(1, "\x1b[1;1H", 3)==-1)
+		kill_process("write");
 }
 
 void handle_keypress()
@@ -37,13 +41,21 @@ void handle_keypress()
 
 	switch(inp)
 	{
-		case CTRL_Q:	exit(0);
+		case CTRL_Q:	
+		{
+			write(1, "\x1b[2J", 4);
+			write(1, "\x1b[1;1H", 3);
+			exit(0);
+		}
 	}
 }
 
 void kill_process(char* msg)
-//for debugging
+//for debugging error
 {
+	write(1, "\x1b[2J", 4);
+	write(1, "\x1b[1;1H", 3);
+
 	char buffer[100];
 	sprintf(buffer, "vkte: %s", msg);
 	perror(buffer);
