@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <sys/ioctl.h>
+#include <string.h>
 
 #define CTRL_Q 17
 
@@ -14,6 +15,12 @@ struct terminal_editor_configuration
 	int rows;
 	int columns;
 	struct termios original;
+};
+
+struct append_buffer
+{
+	char* buffer;
+	int length;
 };
 
 struct terminal_editor_configuration terminal;
@@ -36,6 +43,25 @@ char return_keypress()
 	}
 
 	return inp;
+}
+
+void append_to_buffer(struct append_buffer *ap, char *ch, int len)
+{
+	char* new_buffer=realloc(ap->buffer, ap->length+len);
+
+	if(new_buffer==NULL)
+	{
+		return;
+	}
+
+	memcpy(&new_buffer[ap->length], ch, len);
+	ap->buffer=new_buffer;
+	ap->length+=len;
+}
+
+void free_buffer(struct append_buffer *ap)
+{
+	free(ap->buffer);
 }
 
 void clear_screen()
@@ -77,7 +103,7 @@ void set_terminal_size()
 		kill_process("get_terminal_size");
 }
 
-void draw_line_numbers()
+void draw_line_numbers(struct append_buffer *ap)
 {
 	int line_number=1;
 
@@ -85,7 +111,12 @@ void draw_line_numbers()
 	{
 		//char buffer[4];
 		//sprintf(buffer, "%d\r\n", line_number);
-		write(1, "~\r\n", 3);
+		append_to_buffer(ap, "~", 1);
+
+		if(line_number<=terminal.rows-1)
+		{
+			append_to_buffer(ap, "\r\n", 2);
+		}
 	}
 }
 
@@ -129,6 +160,17 @@ void handle_keypress()
 			exit(0);
 		}
 	}
+}
+
+void refresh_terminal_screen()
+{
+	struct append_buffer ap={NULL, 0};
+	append_to_buffer(&ap, "\x1b[2J", 4);
+	append_to_buffer(&ap, "\x1b[H", 3);
+	draw_line_numbers(&ap);
+	append_to_buffer(&ap, "\x1b[H", 3);
+	write(1, ap.buffer, ap.length);
+	free_buffer(&ap);
 }
 
 void kill_process(char* msg)
