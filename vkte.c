@@ -22,6 +22,7 @@ void kill_process(char*);
 void draw_line_numbers();
 int get_terminal_size(int*, int*);
 void set_terminal_size();
+int get_cursor_position(int*, int*);
 
 char return_keypress()
 //wait for character input
@@ -56,13 +57,11 @@ int get_terminal_size(int *r, int *c)
 {
 	struct winsize size;
 
-	if(ioctl(1, TIOCGWINSZ, &size)==-1)
+	if(ioctl(1, TIOCGWINSZ, &size)==-1||size.ws_col==0)
 	{
-		return -1;
-	}
-	else if(size.ws_col==0)
-	{
-		return -1;
+		if(write(1, "\x1b[999C\x1b[999B", 12)!=12)
+			return -1;
+		return get_cursor_position(r, c);
 	}
 	else
 	{
@@ -88,6 +87,32 @@ void draw_line_numbers()
 		//sprintf(buffer, "%d\r\n", line_number);
 		write(1, "~\r\n", 3);
 	}
+}
+
+int get_cursor_position(int *r, int *c)
+{
+	char buffer[32];
+	unsigned int i=0;
+
+	if(write(1, "\x1b[6n", 4)!=4)
+		return -1;
+
+	while(i<sizeof(buffer)-1) 
+	{
+    	if(read(1, &buffer[i], 1)!=1) 
+    		break;
+    	if(buffer[i]=='R')
+    	    break;
+    	i++;
+  	}
+  	
+  	buffer[i] = '\0';
+  	
+  	if(buffer[0]!='\x1b' || buffer[1]!='[')
+  		 return -1;
+    if(sscanf(&buffer[2], "%d;%d", r, c)!=2)
+    	 return -1;
+  	return 0;
 }
 
 void handle_keypress()
