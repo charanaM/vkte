@@ -17,12 +17,6 @@ struct terminal_editor_configuration
 	struct termios original;
 };
 
-struct append_buffer
-{
-	char* buffer;
-	int length;
-};
-
 struct terminal_editor_configuration terminal;
 
 void kill_process(char*);
@@ -30,6 +24,7 @@ void draw_line_numbers();
 int get_terminal_size(int*, int*);
 void set_terminal_size();
 int get_cursor_position(int*, int*);
+int length_greater_than_columns(int, int);
 
 char return_keypress()
 //wait for character input
@@ -45,24 +40,24 @@ char return_keypress()
 	return inp;
 }
 
-void append_to_buffer(struct append_buffer *ap, char *ch, int len)
-{
-	char* new_buffer=realloc(ap->buffer, ap->length+len);
+// void append_to_buffer(struct append_buffer *ap, char *ch, int len)
+// {
+// 	char* new_buffer=realloc(ap->buffer, ap->length+len);
 
-	if(new_buffer==NULL)
-	{
-		return;
-	}
+// 	if(new_buffer==NULL)
+// 	{
+// 		return;
+// 	}
 
-	memcpy(&new_buffer[ap->length], ch, len);
-	ap->buffer=new_buffer;
-	ap->length+=len;
-}
+// 	memcpy(&new_buffer[ap->length], ch, len);
+// 	ap->buffer=new_buffer;
+// 	ap->length+=len;
+// }
 
-void free_buffer(struct append_buffer *ap)
-{
-	free(ap->buffer);
-}
+// void free_buffer(struct append_buffer *ap)
+// {
+// 	free(ap->buffer);
+// }
 
 void clear_screen()
 //clear the screen by using escape sequence
@@ -103,21 +98,60 @@ void set_terminal_size()
 		kill_process("get_terminal_size");
 }
 
-void draw_line_numbers(struct append_buffer *ap)
+void draw_line_numbers()
 {
 	int line_number=1;
 
 	for(line_number=1;line_number<=terminal.rows;line_number++)
 	{
-		//char buffer[4];
-		//sprintf(buffer, "%d\r\n", line_number);
-		append_to_buffer(ap, "~", 1);
+
+		if(line_number==(terminal.rows/3))
+		{
+			char string[]="VKTE: A simple text editor";
+			int string_len=strlen(string);
+
+			if(length_greater_than_columns(string_len, terminal.columns)==1)
+			{
+				string_len=terminal.columns;	
+			}
+
+			int get_to_centre=(terminal.columns-string_len)/2;
+
+			if(get_to_centre!=0)
+			{
+				write(1, "~", 1);
+				get_to_centre--;
+			}
+
+			for(int i=0;i<get_to_centre;i++)
+			{
+				write(1, " ", 1);
+			}
+
+			write(1, string, string_len);
+		}
+		else
+		{
+			write(1, "~", 1);
+		}
+
+		// char buffer[4];
+		// sprintf(buffer, "%d\r\n", line_number);
+		//write(1, "\x1b[0K", 3);
 
 		if(line_number<=terminal.rows-1)
 		{
-			append_to_buffer(ap, "\r\n", 2);
+			write(1, "\r\n", 2);
 		}
 	}
+}
+
+int length_greater_than_columns(int s, int c)
+{
+	if(s>c)
+		return 1;
+	else
+		return 0;
 }
 
 int get_cursor_position(int *r, int *c)
@@ -164,13 +198,15 @@ void handle_keypress()
 
 void refresh_terminal_screen()
 {
-	struct append_buffer ap={NULL, 0};
-	append_to_buffer(&ap, "\x1b[2J", 4);
-	append_to_buffer(&ap, "\x1b[H", 3);
-	draw_line_numbers(&ap);
-	append_to_buffer(&ap, "\x1b[H", 3);
-	write(1, ap.buffer, ap.length);
-	free_buffer(&ap);
+	//struct append_buffer ap={NULL, 0};
+	//write(1, "\x1b[?25l", 6);
+	write(1, "\x1b[2J", 4);
+	write(1, "\x1b[H", 3);
+	draw_line_numbers();
+	write(1, "\x1b[H", 3);
+	//write(1, "\x1b[?25h", 6);
+	//write(1, ap.buffer, ap.length);
+	//free_buffer(&ap);
 }
 
 void kill_process(char* msg)
@@ -221,6 +257,8 @@ void switch_to_canonical_mode_atexit()
 int main(int argc, char const *argv[])
 //main
 {
+	// printf("\033[0;31m");
+	// printf("%s", "...Hello");
 	struct termios original_mode;
 	if(tcgetattr(0, &original_mode)==-1)
 		kill_process("tcgetattr");
@@ -230,13 +268,16 @@ int main(int argc, char const *argv[])
 	switch_to_raw_mode();
 	set_terminal_size();
 
+
+
 	char inp;
 	while(1)
 	{
-		clear_screen();
+		refresh_terminal_screen();
 		handle_keypress();
 	}
 
 	switch_to_canonical_mode(original_mode);
+	//printf("033[0m"); 
 	return 0;
 }
