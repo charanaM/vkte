@@ -15,6 +15,8 @@ struct terminal_editor_configuration
 	int rows;
 	int columns;
 	struct termios original;
+	int cursor_x_pos;
+	int cursor_y_pos;
 };
 
 struct terminal_editor_configuration terminal;
@@ -94,6 +96,10 @@ int get_terminal_size(int *r, int *c)
 
 void set_terminal_size()
 {
+
+	terminal.cursor_x_pos=0;
+	terminal.cursor_y_pos=0;
+
 	if(get_terminal_size(&terminal.rows, &terminal.columns)==-1)
 		kill_process("get_terminal_size");
 }
@@ -203,7 +209,12 @@ void refresh_terminal_screen()
 	write(1, "\x1b[2J", 4);
 	write(1, "\x1b[H", 3);
 	draw_line_numbers();
-	write(1, "\x1b[H", 3);
+
+	char buffer[32];
+	sprintf(buffer, "\x1b[%d;%dH", terminal.cursor_y_pos+1, terminal.cursor_x_pos+1);
+	write(1, buffer, strlen(buffer));
+
+	//write(1, "\x1b[H", 3);
 	//write(1, "\x1b[?25h", 6);
 	//write(1, ap.buffer, ap.length);
 	//free_buffer(&ap);
