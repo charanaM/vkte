@@ -39,7 +39,33 @@ char return_keypress()
 			kill_process("read");
 	}
 
-	return inp;
+	if(inp=='\x1b')
+	{
+		char sequence[3];
+
+		if(read(0, &sequence[0], 1)!=1)
+			return '\x1b';
+		if(read(0, &sequence[1], 1)!=1)
+			return '\x1b';
+
+		if(sequence[0]=='[')
+		{
+			if(sequence[1]=='A')
+				return 'w';
+			else if(sequence[1]=='B')
+				return 's';
+			else if(sequence[1]=='C')
+				return 'd';
+			else if(sequence[1]=='D')
+				return 'a';
+		}
+
+		return '\x1b';
+	}
+	else
+	{
+		return inp;
+	}
 }
 
 // void append_to_buffer(struct append_buffer *ap, char *ch, int len)
