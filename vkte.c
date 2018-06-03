@@ -228,25 +228,29 @@ void handle_keypress()
 
 		case 'a':
 		{
-			terminal.cursor_x_pos--;
+			if(terminal.cursor_x_pos!=0)
+				terminal.cursor_x_pos--;
 			break;
 		}
 
 		case 'd':
 		{
-			terminal.cursor_x_pos++;
+			if(terminal.cursor_x_pos!=terminal.columns-1)
+				terminal.cursor_x_pos++;
 			break;
 		}
 
 		case 's':
 		{
-			terminal.cursor_y_pos++;
+			if(terminal.cursor_y_pos!=terminal.rows-1)
+				terminal.cursor_y_pos++;
 			break;
 		}
 
 		case 'w':
 		{
-			terminal.cursor_y_pos--;
+			if(terminal.cursor_y_pos!=0)
+				terminal.cursor_y_pos--;
 			break;
 		}
 	}
