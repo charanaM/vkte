@@ -199,6 +199,30 @@ void handle_keypress()
 			write(1, "\x1b[1;1H", 3);
 			exit(0);
 		}
+
+		case 'a':
+		{
+			terminal.cursor_x_pos--;
+			break;
+		}
+
+		case 'd':
+		{
+			terminal.cursor_x_pos++;
+			break;
+		}
+
+		case 's':
+		{
+			terminal.cursor_y_pos++;
+			break;
+		}
+
+		case 'w':
+		{
+			terminal.cursor_y_pos--;
+			break;
+		}
 	}
 }
 
