@@ -8,6 +8,8 @@
 #include <string.h>
 
 #define CTRL_Q 17
+#define UP 1000
+#define DOWN 1001
 
 //to store terminal configurations
 struct terminal_editor_configuration
@@ -28,7 +30,7 @@ void set_terminal_size();
 int get_cursor_position(int*, int*);
 int length_greater_than_columns(int, int);
 
-char return_keypress()
+int return_keypress()
 //wait for character input
 {
 	int err=0;
@@ -50,7 +52,25 @@ char return_keypress()
 
 		if(sequence[0]=='[')
 		{
-			if(sequence[1]=='A')
+			if(sequence[1]>='0' && sequence[1]<='9')
+			{
+				if(read(0, &sequence[2], 1)!=1)
+				{
+					return '\x1b';
+				}
+				if(sequence[2]=='~')
+				{
+					if(sequence[1]=='5')
+					{
+						return UP;
+					}
+					else if(sequence[1]=='6')
+					{
+						return DOWN;
+					}
+				}
+			}
+			else if(sequence[1]=='A')
 				return 'w';
 			else if(sequence[1]=='B')
 				return 's';
@@ -215,7 +235,7 @@ int get_cursor_position(int *r, int *c)
 void handle_keypress()
 //handle the character entered
 {
-	char inp=return_keypress();
+	int inp=return_keypress();
 
 	switch(inp)
 	{
@@ -224,6 +244,26 @@ void handle_keypress()
 			write(1, "\x1b[2J", 4);
 			write(1, "\x1b[1;1H", 3);
 			exit(0);
+		}
+
+		case UP:
+		{
+			for(int i=0;i<terminal.rows;i++)
+			{
+				if(terminal.cursor_y_pos!=0)
+					terminal.cursor_y_pos--;
+			}
+			break;
+		}
+
+		case DOWN:
+		{
+			for(int i=0;i<terminal.rows;i++)
+			{
+				if(terminal.cursor_y_pos!=terminal.rows-1)
+					terminal.cursor_y_pos++;
+			}
+			break;
 		}
 
 		case 'a':
