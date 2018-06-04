@@ -10,6 +10,8 @@
 #define CTRL_Q 17
 #define UP 1000
 #define DOWN 1001
+#define HOME 1002
+#define END 1003
 
 //to store terminal configurations
 struct terminal_editor_configuration
@@ -60,7 +62,15 @@ int return_keypress()
 				}
 				if(sequence[2]=='~')
 				{
-					if(sequence[1]=='5')
+					if(sequence[1]=='1' || sequence[1]=='7')
+					{
+						return HOME;
+					}
+					else if(sequence[1]=='4' || sequence[1]=='8')
+					{
+						return END;
+					}
+					else if(sequence[1]=='5')
 					{
 						return UP;
 					}
@@ -78,8 +88,22 @@ int return_keypress()
 				return 'd';
 			else if(sequence[1]=='D')
 				return 'a';
+			else if(sequence[1]=='H')
+				return HOME;
+			else if(sequence[1]=='F')
+				return END;
 		}
-
+		else if(sequence[0]=='O')
+		{
+			if(sequence[1]=='H')
+			{
+				return HOME;
+			}
+			else if(sequence[1]=='F')
+			{
+				return END;
+			}
+		}
 		return '\x1b';
 	}
 	else
@@ -263,6 +287,18 @@ void handle_keypress()
 				if(terminal.cursor_y_pos!=terminal.rows-1)
 					terminal.cursor_y_pos++;
 			}
+			break;
+		}
+
+		case HOME:
+		{
+			terminal.cursor_x_pos=0;
+			break;
+		}
+
+		case END:
+		{
+			terminal.cursor_x_pos=terminal.columns-1;
 			break;
 		}
 
