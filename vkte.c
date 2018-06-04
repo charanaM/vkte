@@ -12,6 +12,7 @@
 #define DOWN 1001
 #define HOME 1002
 #define END 1003
+#define DELETE 1004
 
 //to store terminal configurations
 struct terminal_editor_configuration
@@ -69,6 +70,10 @@ int return_keypress()
 					else if(sequence[1]=='4' || sequence[1]=='8')
 					{
 						return END;
+					}
+					else if(sequence[1]=='3')
+					{
+						return DELETE;
 					}
 					else if(sequence[1]=='5')
 					{
