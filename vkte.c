@@ -1,3 +1,7 @@
+#define _DEFULT_SOURCE
+#define _BSD_SOURCE
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <unistd.h>
 #include <termios.h>
@@ -210,7 +214,7 @@ void draw_line_numbers()
 	for(line_number=1;line_number<=terminal.rows;line_number++)
 	{
 
-		if(line_number>=terminal.rows_displayed)
+		if(line_number>terminal.rows_displayed)
 		{
 			if(line_number==(terminal.rows/3))
 			{
