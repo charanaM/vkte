@@ -48,11 +48,22 @@ int get_cursor_position(int*, int*);
 int length_greater_than_columns(int, int);
 
 
-void on_open()
+void on_open(char *file_name)
 {
-	char* display="Hello World";
-	int size=strlen(display);
+	FILE *fp=fopen(file_name, "r");
+	if(!fp)
+	{
+		kill_process("fopen");
+	}
 
+	char *display_line=NULL;
+	int size=0;
+	int length=0;
+
+	length=getline(&display_line, &size, fp);
+	//continue TODO
+
+	
 	terminal.terminal_row.size=size;
 	terminal.terminal_row.display=malloc(size+1);
 
@@ -453,7 +464,7 @@ int main(int argc, char const *argv[])
 	atexit(switch_to_canonical_mode_atexit);
 	switch_to_raw_mode();
 	set_terminal_size();
-	on_open();
+	on_open("vkte.c");
 
 
 
