@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <sys/ioctl.h>
 #include <string.h>
+#include <sys/types.h>
 
 #define CTRL_Q 17
 #define UP 1000
@@ -13,6 +14,13 @@
 #define HOME 1002
 #define END 1003
 #define DELETE 1004
+
+struct terminal_line_row
+{
+	int size;
+	char* display;
+};
+
 
 //to store terminal configurations
 struct terminal_editor_configuration
@@ -22,6 +30,8 @@ struct terminal_editor_configuration
 	struct termios original;
 	int cursor_x_pos;
 	int cursor_y_pos;
+	int rows_displayed;
+	struct terminal_line_row terminal_row;
 };
 
 struct terminal_editor_configuration terminal;
@@ -32,6 +42,19 @@ int get_terminal_size(int*, int*);
 void set_terminal_size();
 int get_cursor_position(int*, int*);
 int length_greater_than_columns(int, int);
+
+
+void on_open()
+{
+	char* display="Hello World";
+	int size=strlen(display);
+
+	terminal.terminal_row.size=size;
+	terminal.terminal_row.display=malloc(size+1);
+
+	strcpy(terminal.terminal_row.display, display);
+	terminal.rows_displayed=1;
+}
 
 int return_keypress()
 //wait for character input
@@ -174,6 +197,7 @@ void set_terminal_size()
 
 	terminal.cursor_x_pos=0;
 	terminal.cursor_y_pos=0;
+	terminal.rows_displayed=0;
 
 	if(get_terminal_size(&terminal.rows, &terminal.columns)==-1)
 		kill_process("get_terminal_size");
@@ -186,34 +210,46 @@ void draw_line_numbers()
 	for(line_number=1;line_number<=terminal.rows;line_number++)
 	{
 
-		if(line_number==(terminal.rows/3))
+		if(line_number>=terminal.rows_displayed)
 		{
-			char string[]="VKTE: A simple text editor";
-			int string_len=strlen(string);
-
-			if(length_greater_than_columns(string_len, terminal.columns)==1)
+			if(line_number==(terminal.rows/3))
 			{
-				string_len=terminal.columns;	
+				char string[]="VKTE: A simple text editor";
+				int string_len=strlen(string);
+
+				if(length_greater_than_columns(string_len, terminal.columns)==1)
+				{
+					string_len=terminal.columns;	
+				}
+
+				int get_to_centre=(terminal.columns-string_len)/2;
+
+				if(get_to_centre!=0)
+				{
+					write(1, "~", 1);
+					get_to_centre--;
+				}
+
+				for(int i=0;i<get_to_centre;i++)
+				{
+					write(1, " ", 1);
+				}
+
+				write(1, string, string_len);
 			}
-
-			int get_to_centre=(terminal.columns-string_len)/2;
-
-			if(get_to_centre!=0)
+			else
 			{
 				write(1, "~", 1);
-				get_to_centre--;
 			}
-
-			for(int i=0;i<get_to_centre;i++)
-			{
-				write(1, " ", 1);
-			}
-
-			write(1, string, string_len);
 		}
 		else
 		{
-			write(1, "~", 1);
+			int length=terminal.terminal_row.size;
+			if(length>terminal.rows)
+			{
+				length=terminal.rows;
+			}
+			write(1, terminal.terminal_row.display, length);
 		}
 
 		// char buffer[4];
@@ -413,6 +449,7 @@ int main(int argc, char const *argv[])
 	atexit(switch_to_canonical_mode_atexit);
 	switch_to_raw_mode();
 	set_terminal_size();
+	on_open();
 
 
 
