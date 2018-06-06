@@ -57,18 +57,31 @@ void on_open(char *file_name)
 	}
 
 	char *display_line=NULL;
-	int size=0;
+	size_t size=0;
 	int length=0;
 
 	length=getline(&display_line, &size, fp);
-	//continue TODO
+	if(length!=-1)
+	{
+		while(length>0 && (display_line[length-1]=='\n'||display_line[length-1]=='\r'))
+		{
+			length--;
+		}
 
+		terminal.terminal_row.size=length;
+		terminal.terminal_row.display=malloc(length+1);
+		strcpy(terminal.terminal_row.display, display_line);
+		terminal.rows_displayed=1;
+	}
+
+	free(display_line);
+	fclose(fp);
 	
-	terminal.terminal_row.size=size;
-	terminal.terminal_row.display=malloc(size+1);
+	// terminal.terminal_row.size=size;
+	// terminal.terminal_row.display=malloc(size+1);
 
-	strcpy(terminal.terminal_row.display, display);
-	terminal.rows_displayed=1;
+	// strcpy(terminal.terminal_row.display, display);
+	// terminal.rows_displayed=1;
 }
 
 int return_keypress()
@@ -227,7 +240,7 @@ void draw_line_numbers()
 
 		if(line_number>terminal.rows_displayed)
 		{
-			if(line_number==(terminal.rows/3))
+			if(line_number==(terminal.rows/3) && terminal.rows_displayed==0)
 			{
 				char string[]="VKTE: A simple text editor";
 				int string_len=strlen(string);
@@ -464,7 +477,7 @@ int main(int argc, char const *argv[])
 	atexit(switch_to_canonical_mode_atexit);
 	switch_to_raw_mode();
 	set_terminal_size();
-	on_open("vkte.c");
+	on_open("README.md");
 
 
 
