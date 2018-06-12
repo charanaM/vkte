@@ -1,3 +1,5 @@
+//TODO: 61
+
 #define _DEFULT_SOURCE
 #define _BSD_SOURCE
 #define _GNU_SOURCE
@@ -35,7 +37,7 @@ struct terminal_editor_configuration
 	int cursor_x_pos;
 	int cursor_y_pos;
 	int rows_displayed;
-	struct terminal_line_row terminal_row;
+	struct terminal_line_row *terminal_row;
 };
 
 struct terminal_editor_configuration terminal;
@@ -222,9 +224,9 @@ int get_terminal_size(int *r, int *c)
 
 void set_terminal_size()
 {
-
 	terminal.cursor_x_pos=0;
 	terminal.cursor_y_pos=0;
+	terminal.terminal_row=NULL;
 	terminal.rows_displayed=0;
 
 	if(get_terminal_size(&terminal.rows, &terminal.columns)==-1)
