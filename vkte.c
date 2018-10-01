@@ -170,25 +170,6 @@ int return_keypress()
 	}
 }
 
-// void append_to_buffer(struct append_buffer *ap, char *ch, int len)
-// {
-// 	char* new_buffer=realloc(ap->buffer, ap->length+len);
-
-// 	if(new_buffer==NULL)
-// 	{
-// 		return;
-// 	}
-
-// 	memcpy(&new_buffer[ap->length], ch, len);
-// 	ap->buffer=new_buffer;
-// 	ap->length+=len;
-// }
-
-// void free_buffer(struct append_buffer *ap)
-// {
-// 	free(ap->buffer);
-// }
-
 void clear_screen()
 //clear the screen by using escape sequence
 {
