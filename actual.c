@@ -137,7 +137,8 @@ void editorRefreshScreen() {
   editorDrawRows(&ab);
 
   abAppend(&ab, "\x1b[H", 3);
-  abAppend(&ab, "\x1b[?25h", 6);
+  int temp = 6;
+  abAppend(&ab, "\x1b[?25h", temp);
 
   write(STDOUT_FILENO, ab.b, ab.len);
   abFree(&ab);
